@@ -1,0 +1,9 @@
+".\Objects\OPTIONS_SZC909.obj",
+".\Objects\main.obj",
+".\Objects\Timer.obj",
+".\Objects\ADC.obj",
+".\Objects\LCD.obj",
+".\Objects\Work.obj",
+".\Objects\Key.obj" 
+TO ".\Objects\NIBP.Code" 
+PRINT(".\Listings\NIBP.m51") RAMSIZE(256) 
