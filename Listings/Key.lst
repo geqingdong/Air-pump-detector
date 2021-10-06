@@ -1,0 +1,241 @@
+C51 COMPILER V9.54   KEY                                                                   04/30/2021 09:19:52 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE KEY
+OBJECT MODULE PLACED IN .\Objects\Key.obj
+COMPILER INVOKED BY: D:\GJ\MDK\C51\BIN\C51.EXE .c\Key.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\.h) DEBUG OBJECTEXTEND PRINT(.
+                    -\Listings\Key.lst) OBJECT(.\Objects\Key.obj)
+
+line level    source
+
+   1          #include <SZC909.H>
+   2          #include "SystemConstant.h"
+   3          #include "PUMPDET_Lcd.h"
+   4          #include "PUMPDET_Timer.h"
+   5          #include "PUMPDET_ADC.h"
+   6          #include "PUMPDET_Work.h"
+   7          #include "PUMPDET_Key.h"
+   8          
+   9          uint8 xdata Key_Change;
+  10          uint8 xdata Key_Value=0;        
+  11          uint8 xdata Set_Con=0; //设置的位（0正常，1设置充气速率，2设置漏数）
+  12          //uint8 xdata   View_Con=0;
+  13          uint8 xdata Gas_set=1;
+  14          uint8 xdata Power_set=1;
+  15          uint8 xdata Leakage_set=3;
+  16          uint8 xdata InflationTime_set=10;
+  17          uint16 xdata WorkI_set=399;
+  18          
+  19          
+  20          uint8 LKEY_Scan(void)
+  21          {        
+  22   1              static uint8 key_up=1;//按键按松开标志，按下时为1，松开时为0
+  23   1              static uint16 keytimecount=0;     
+  24   1              if(key_up&&(KEY_SET == 0))
+  25   1              {
+  26   2                      Delay_10ms(2);//去抖动 
+  27   2                      if(KEY_SET == 0) key_up=0;
+  28   2              }
+  29   1              else if(KEY_SET == 1)
+  30   1              {
+  31   2                      if(key_up==0)
+  32   2                      {
+  33   3                              key_up=1;                       
+  34   3                              if(keytimecount<100)
+  35   3                              {
+  36   4                                      keytimecount=0;
+  37   4                                      return 1;
+  38   4                              }
+  39   3                              keytimecount=0;
+  40   3                      }
+  41   2              }
+  42   1              if(key_up==0)
+  43   1              {
+  44   2                      Delay_10ms(1);
+  45   2                      keytimecount++;
+  46   2                      if(keytimecount>=100)
+  47   2                      {
+  48   3                              return 2;//KEY_SET_LONG_PRES;
+  49   3                      }       
+  50   2              }
+  51   1              return 0;// 无按键按下
+  52   1      }
+  53          
+  54          void Key_Scan()
+C51 COMPILER V9.54   KEY                                                                   04/30/2021 09:19:52 PAGE 2   
+
+  55          {
+  56   1              if( KEY_SET == 0)
+  57   1                      {
+  58   2                              Delay_10ms(2);                                          
+  59   2                              if( KEY_SET == 0) Key_Value = 1;                
+  60   2                              while( KEY_SET == 0);
+  61   2                      }
+  62   1      
+  63   1              if( KEY_ADD == 0)
+  64   1                      {
+  65   2                              Delay_10ms(10);                                         
+  66   2                              if( KEY_ADD == 0) Key_Value = 2;                
+  67   2      //                      while( KEY_ADD == 0);
+  68   2                      }
+  69   1              
+  70   1              if( KEY_SUB == 0)
+  71   1                      {
+  72   2                              Delay_10ms(10);                                         
+  73   2                              if( KEY_SUB == 0) Key_Value = 3;                
+  74   2      //                      while( KEY_SUB == 0);
+  75   2                      }
+  76   1              if( Key_Value != 0)Key_Change=1;
+  77   1              else Key_Change=0;
+  78   1      
+  79   1      }
+  80          
+  81          void Key_Set()
+  82          {
+  83   1              if(Key_Change)
+  84   1              {
+  85   2                      Key_Change=0;
+  86   2                      switch(Key_Value)
+  87   2                      {
+  88   3                              case 1:
+  89   3                              {
+  90   4                                      Set_Con++;
+  91   4                                      if(Set_Con==6)Set_Con=0;
+  92   4                              break;
+  93   4                              }
+  94   3                              case 2:
+  95   3                              {
+  96   4                                      if(Set_Con==1)
+  97   4                                      {
+  98   5                                              if(Gas_set == 2)Gas_set=1;
+  99   5                                              else Gas_set++;                         
+ 100   5                                      }
+ 101   4                                      if(Set_Con==2)
+ 102   4                                      {
+ 103   5                                              if(Power_set == 2)Power_set=1;
+ 104   5                                              else Power_set++;                                               
+ 105   5                                      }
+ 106   4                                      if(Set_Con==3)
+ 107   4                                      {
+ 108   5                                              if(InflationTime_set == 99)InflationTime_set=0;
+ 109   5                                              else InflationTime_set++;                               
+ 110   5                                      }
+ 111   4                                      if(Set_Con==4)
+ 112   4                                      {
+ 113   5                                              if(Leakage_set == 99)Leakage_set=0;
+ 114   5                                              else Leakage_set++;                             
+ 115   5                                      }
+ 116   4                                      if(Set_Con==5)
+C51 COMPILER V9.54   KEY                                                                   04/30/2021 09:19:52 PAGE 3   
+
+ 117   4                                      {
+ 118   5                                              if(WorkI_set == 399)WorkI_set=0;
+ 119   5                                              else WorkI_set++;                                       
+ 120   5                                      }                               
+ 121   4                              break;
+ 122   4                              }
+ 123   3                              case 3:
+ 124   3                              {
+ 125   4                                      if(Set_Con==1)
+ 126   4                                      {
+ 127   5                                              if(Gas_set == 1)Gas_set=2;
+ 128   5                                              else Gas_set--; 
+ 129   5                                      }
+ 130   4                                      if(Set_Con==2)
+ 131   4                                      {
+ 132   5                                              if(Power_set == 1)Power_set=2;
+ 133   5                                              else Power_set--;       
+ 134   5                                      }
+ 135   4                                      if(Set_Con==3)
+ 136   4                                      {
+ 137   5                                              if(InflationTime_set == 0)InflationTime_set=99;
+ 138   5                                              else InflationTime_set--;               
+ 139   5                                      }
+ 140   4                                      if(Set_Con==4)
+ 141   4                                      {
+ 142   5                                              if(Leakage_set == 0)Leakage_set=99;
+ 143   5                                              else Leakage_set--;                             
+ 144   5                                      }
+ 145   4                                      if(Set_Con==5)
+ 146   4                                      {
+ 147   5                                              if(WorkI_set == 0)WorkI_set=399;
+ 148   5                                              else WorkI_set--;                               
+ 149   5                                      }
+ 150   4                              break;
+ 151   4                              }                       
+ 152   3                      }       
+ 153   2              }
+ 154   1              Key_Value = 0;
+ 155   1      }
+ 156          
+ 157          //void Key_View()
+ 158          //{
+ 159          //      if(Key_Change)
+ 160          //      {
+ 161          //    Key_Change=0;
+ 162          //        switch(Key_Value)
+ 163          //         {
+ 164          //                       case 1:
+ 165          //                      {
+ 166          //                              ClearDisplay();
+ 167          //                  LCD_Mode = LCD_ALL_OFF;
+ 168          //                              System_Init();
+ 169          //                              LCDM1=0;
+ 170          //                              RTime=0;
+ 171          //                              PUMPDET_FSM=0x10;      
+ 172          //                      break;
+ 173          //                      }
+ 174          //                      case 2:
+ 175          //                      {
+ 176          //                              View_Con++;
+ 177          //                              if(View_Con==3)View_Con=1;
+ 178          //                      break;
+C51 COMPILER V9.54   KEY                                                                   04/30/2021 09:19:52 PAGE 4   
+
+ 179          //                      }
+ 180          //                      case 3:
+ 181          //                      {
+ 182          //        View_Con--;
+ 183          //                              if(View_Con==0)View_Con=2;
+ 184          //                      break;
+ 185          //                      }               
+ 186          //}
+ 187          //}
+ 188          //              Key_Value = 0;
+ 189          //}
+ 190                  
+ 191          void Exit_Normal_Mode_Check(void)                       //按键退出检查
+ 192          {
+ 193   1                      if( KEY_SET == 0)
+ 194   1                      {
+ 195   2                              Delay_10ms(1);                                          
+ 196   2                              if( KEY_SET == 0)
+ 197   2                              {
+ 198   3                                      while( KEY_SET == 0);
+ 199   3              ClearDisplay();
+ 200   3                          LCD_Mode = LCD_ALL_OFF;
+ 201   3                                      System_Init();
+ 202   3      //                              LCDM1=0;
+ 203   3                                      Time_Flag=0;
+ 204   3              LK_Flag=0;
+ 205   3                                      LED1=LED2=LED3=0;
+ 206   3                                      PUMPDET_FSM=0x00;      
+ 207   3      
+ 208   3              }
+ 209   2      }
+ 210   1      }
+ 211          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    574    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      9    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
